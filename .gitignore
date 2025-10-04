@@ -1,0 +1,39 @@
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+*.pkl
+*.h5
+*.onnx
+
+# Virtual environments
+venv/
+.venv/
+*/venv/
+*/.venv/
+
+# Jupyter Notebook checkpoints
+.ipynb_checkpoints/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Data & models (optional, if you don’t want raw datasets in GitHub)
+data/
+*.zip
+*.tar.gz
+*.csv
+*.tsv
+*.json
+*.pth
+*.pt
+
+# Logs
+logs/
+*.log
+
+# Experiment artifacts
+mlruns/
+dvc.lock
