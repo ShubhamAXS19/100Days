@@ -10,6 +10,7 @@ sys.path.append(str(project_root))
 
 from ingest.fetch_transcript import fetch_transcripts
 from ingest.chunking import chunk_transcripts
+from ingest.embed_store import generate_embeddings
 
 # Rest of your code remains the same...
 user_input = st.text_input("Paste the link here:")
@@ -36,6 +37,8 @@ if st.button("Send"):
             transcript_text = fetch_transcripts(video_id)
         if not transcript_text:
             st.error("Transcript not available ❌")
+            print("Transcript not available ❌")
+            
         else:
             st.success("Transcript fetched ✅")
             st.session_state["transcript"] = transcript_text
@@ -48,5 +51,16 @@ if st.button("Send"):
 
             st.success(f"Transcript chunked into {len(chunks)} pieces ✅")
             st.session_state["chunks"] = chunks
-            print("Transcript chunked successfully ✅")
+            print(f"Transcript chunked into {len(chunks)} pieces ✅")
+            
+            # Step 3: Embedding chunks and storing into pinecone
+            with st.spinner("Embedding Chunks..."):
+                print("Starting to embedd chunks..........")
+                embeddings = generate_embeddings(chunks)
+                
+            st.success(f"Embeddings chunked into pinecone ✅")
+            # st.session_state["chunks"] = chunks
+            print(f"Embeddings chunked into pinecone ✅")
+            
+            
             
