@@ -1,49 +1,75 @@
 import os
+import shutil
 
-project_name = "trade_compliance_checker"
+def safe_move(src, dst):
+    if not os.path.exists(src):
+        print(f"⚠️  Skipping {src} (not found)")
+        return
+    if os.path.exists(dst):
+        print(f"✅  {dst} already exists, skipping move")
+        return
+    os.makedirs(os.path.dirname(dst), exist_ok=True)
+    shutil.move(src, dst)
+    print(f"📦  Moved {src} → {dst}")
 
-structure = {
-    "": ["README.md", "requirements.txt", ".env.example", "Dockerfile", "Makefile"],
-    "app": ["__init__.py", "server.py"],
-    "app/agents": ["__init__.py", "document_agent.py", "extraction_agent.py", "decision_agent.py"],
-    "app/tools": ["__init__.py", "ocr_tool.py", "pdf_parser_tool.py", "sanctions_db_tool.py", "embedding_tool.py"],
-    "data": ["sample_docs", "sanctions_list.csv"],
-    "tests": ["__init__.py", "test_agents.py", "test_tools.py"],
-    "scripts": ["run_demo.py"],
-}
+def safe_create(path, content=""):
+    if not os.path.exists(path):
+        os.makedirs(os.path.dirname(path), exist_ok=True)
+        with open(path, "w") as f:
+            f.write(content)
+        print(f"🆕  Created {path}")
+    else:
+        print(f"✅  {path} already exists, skipping create")
 
-placeholder_content = {
-    "server.py": "# server.py\n# LangServe entrypoint placeholder\n",
-    "document_agent.py": "# document_agent.py\nclass DocumentAgent:\n    def process(self, file_path):\n        return {'text': 'dummy text'}\n",
-    "extraction_agent.py": "# extraction_agent.py\nclass ExtractionAgent:\n    def extract(self, text):\n        return {'entities': []}\n",
-    "decision_agent.py": "# decision_agent.py\nclass DecisionAgent:\n    def decide(self, entities):\n        return {'decision': 'pending'}\n",
-    "ocr_tool.py": "# ocr_tool.py\n# TODO: implement OCR logic\n",
-    "pdf_parser_tool.py": "# pdf_parser_tool.py\n# TODO: implement PDF parsing logic\n",
-    "sanctions_db_tool.py": "# sanctions_db_tool.py\n# TODO: implement sanctions DB check\n",
-    "embedding_tool.py": "# embedding_tool.py\n# TODO: implement embeddings / semantic search\n",
-    "test_agents.py": "# test_agents.py\n# TODO: write unit tests for agents\n",
-    "test_tools.py": "# test_tools.py\n# TODO: write unit tests for tools\n",
-    "run_demo.py": "# run_demo.py\n# Quick demo script placeholder\n",
-    "README.md": "# Trade Compliance Checker\n\nProject skeleton for multi-agent LangChain compliance app.\n",
-    "requirements.txt": "# requirements.txt\nlangchain\nlangserve\nfastapi\nuvicorn\n",
-    ".env.example": "# .env.example\n# Add your API keys here\n",
-    "Dockerfile": "# Dockerfile\n# Placeholder Dockerfile\n",
-    "Makefile": "# Makefile\n# Placeholder for build / run commands\n",
-}
+def refactor_project():
+    # Backend base
+    backend_dirs = [
+        "backend/app/agents",
+        "backend/app/tools",
+        "backend/app/utils",
+        "backend/app/data",
+        "backend/app/tests",
+    ]
+    for d in backend_dirs:
+        os.makedirs(d, exist_ok=True)
 
-def make_dirs_and_files(base, struct, placeholders):
-    for folder, files in struct.items():
-        dirpath = os.path.join(base, folder)
-        os.makedirs(dirpath, exist_ok=True)
-        for fname in files:
-            path = os.path.join(dirpath, fname)
-            if fname in ["sample_docs"]:  # create folder instead of file
-                os.makedirs(path, exist_ok=True)
-            else:
-                if not os.path.exists(path):
-                    with open(path, "w") as f:
-                        f.write(placeholders.get(fname, f"# {fname}\n"))
-    print(f"Project skeleton created at {os.path.abspath(base)}")
+    # Move files if exist
+    safe_move("app", "backend/app")
+    safe_move("requirements.txt", "backend/requirements.txt")
+    safe_move("Dockerfile", "backend/Dockerfile")
+    safe_move(".env.example", "backend/.env.example")
+
+    # Rename server.py → main.py
+    old_server = "backend/app/server.py"
+    new_main = "backend/app/main.py"
+    if os.path.exists(old_server) and not os.path.exists(new_main):
+        shutil.move(old_server, new_main)
+        print("📝  Renamed server.py → main.py")
+
+    # Create agent placeholders
+    agents = {
+        "document_agent.py": "# Handles document parsing and OCR\n",
+        "extraction_agent.py": "# Extracts trade entities and checks sanctions\n",
+        "decision_agent.py": "# Generates compliance decision and report\n",
+    }
+    for fname, content in agents.items():
+        safe_create(f"backend/app/agents/{fname}", content)
+
+    # Create frontend structure
+    os.makedirs("frontend/components", exist_ok=True)
+    safe_create("frontend/streamlit_app.py", "# Streamlit entrypoint\n")
+    safe_create("frontend/requirements.txt", "streamlit\nrequests\n")
+    safe_create("frontend/Dockerfile", "# Dockerfile for Streamlit frontend\n")
+    safe_create("frontend/.env.example", "# .env.example\n")
+
+    for fname, content in {
+        "upload_box.py": "# Handles file uploads\n",
+        "progress_tracker.py": "# Displays progress\n",
+        "decision_view.py": "# Shows compliance decision\n",
+    }.items():
+        safe_create(f"frontend/components/{fname}", content)
+
+    print("\n🎉 Project skeleton ready!")
 
 if __name__ == "__main__":
-    make_dirs_and_files(".", structure, placeholder_content)
+    refactor_project()
